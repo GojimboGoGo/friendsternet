@@ -1,0 +1,36 @@
+version: "3.7"
+services:
+
+  friendsternet:
+    image: friendsternet:1.0.0-SNAPSHOT
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
+#    depends_on:
+#      - db
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+#  db:
+#    image: postgres:9.4
+#    volumes:
+#      - db-data:/var/lib/postgresql/data
+#    networks:
+#      - backend
+#    deploy:
+#      placement:
+#        constraints:
+#          - "node.role==manager"
+
+networks:
+  frontend:
+  backend:
+
+volumes:
+  db-data:
