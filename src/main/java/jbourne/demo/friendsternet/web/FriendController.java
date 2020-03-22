@@ -1,6 +1,7 @@
 package jbourne.demo.friendsternet.web;
 
 import jbourne.demo.friendsternet.data.dto.*;
+import jbourne.demo.friendsternet.domain.FriendService;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,11 +14,17 @@ import static jbourne.demo.friendsternet.web.FriendsUrls.*;
 @RequestMapping(BASE_PATH)
 public class FriendController {
 
+    public FriendController(FriendService friendService) {
+        this.friendService = friendService;
+    }
+
+    private final FriendService friendService;
+
     @PostMapping(value = CREATE_CONNECTION)
     public FriendResultDto createConnection(
             @RequestBody FriendCreateRequestDto createRequestDto
     ) {
-        throw new IllegalStateException("TODO: implementation");
+        return friendService.createFriendConnection(createRequestDto);
     }
 
     @PostMapping(value = GET_FRIENDS)

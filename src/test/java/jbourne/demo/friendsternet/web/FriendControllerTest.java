@@ -3,24 +3,37 @@ package jbourne.demo.friendsternet.web;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jbourne.demo.friendsternet.data.dto.*;
+import jbourne.demo.friendsternet.data.entity.User;
+import jbourne.demo.friendsternet.data.repository.ConnectionRepository;
+import jbourne.demo.friendsternet.data.repository.UserRepository;
+import jbourne.demo.friendsternet.domain.FriendService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 
 import java.util.List;
+import java.util.Optional;
 
 import static jbourne.demo.friendsternet.web.FriendsUrls.*;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
-@WebFluxTest(controllers = { FriendController.class })
-class FriendControllerIntegrationTest {
+@WebFluxTest(controllers = {FriendController.class})
+@Import(FriendService.class)
+class FriendControllerTest {
+    @MockBean
+    private UserRepository userRepository;
+    @MockBean
+    private ConnectionRepository connectionRepository;
 
     @Autowired
     private WebTestClient webTestClient;
@@ -35,15 +48,32 @@ class FriendControllerIntegrationTest {
     @Test
     @DisplayName("As a user, I need an API to create a friend connection between two email addresses.")
     void shouldAllowCreatingConnections() throws Exception {
-        List<String> friends = List.of("andy@example.com", "john@example.com");
+        String e1 = "andy@example.com";
+        String e2 = "john@example.com";
+        List<String> friends = List.of(e1, e2);
         FriendCreateRequestDto request = new FriendCreateRequestDto();
         request.setFriends(friends);
 
-        FriendResultDto resultDto = FriendResultDto.builder()
-                .success(true)
-                .build();
+        FriendResultDto result = new FriendResultDto();
+        result.setSuccess(true);
+        User user = new User();
+        user.setId(1L);
+        when(userRepository.findByEmailAddress(e1))
+                .thenReturn(Optional.of(user));
+        user = new User();
+        user.setId(2L);
+        when(userRepository.findByEmailAddress(e2))
+                .thenReturn(Optional.of(user));
 
-        sendRequest(CREATE_CONNECTION, request, resultDto);
+//        sendRequest(CREATE_CONNECTION, request, resultDto);
+        webTestClient.post()
+                .uri(CREATE_CONNECTION)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(request))
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .json(mapper.writeValueAsString(result));
     }
 
     @Test
@@ -52,13 +82,12 @@ class FriendControllerIntegrationTest {
         FriendListRequestDto request = new FriendListRequestDto();
         request.setEmail("andy@example.com");
 
-        FriendResultDto resultDto = FriendResultDto.builder()
-                .success(true)
-                .friends(List.of("john@example.com"))
-                .count(1)
-                .build();
+        FriendResultDto result = new FriendResultDto();
+        result.setSuccess(true);
+        result.setFriends(List.of("john@example.com"));
+        result.setCount(1);
 
-        sendRequest(GET_FRIENDS, request, resultDto);
+        sendRequest(GET_FRIENDS, request, result);
     }
 
     @Test
@@ -67,13 +96,12 @@ class FriendControllerIntegrationTest {
         FriendCommonListRequestDto request = new FriendCommonListRequestDto();
         request.setFriends(List.of("andy@example.com", "john@example.com"));
 
-        FriendResultDto resultDto = FriendResultDto.builder()
-                .success(true)
-                .friends(List.of("common@example.com"))
-                .count(1)
-                .build();
+        FriendResultDto result = new FriendResultDto();
+        result.setSuccess(true);
+        result.setFriends(List.of("common@example.com"));
+        result.setCount(1);
 
-        sendRequest(GET_COMMON_FRIENDS, request, resultDto);
+        sendRequest(GET_COMMON_FRIENDS, request, result);
     }
 
     @Test
@@ -83,11 +111,10 @@ class FriendControllerIntegrationTest {
         request.setRequestor("lisa@example.com");
         request.setTarget("john@example.com");
 
-        FriendResultDto resultDto = FriendResultDto.builder()
-                .success(true)
-                .build();
+        FriendResultDto result = new FriendResultDto();
+        result.setSuccess(true);
 
-        sendRequest(SUBSCRIBE, request, resultDto);
+        sendRequest(SUBSCRIBE, request, result);
     }
 
     @Test
@@ -98,11 +125,10 @@ class FriendControllerIntegrationTest {
         request.setRequestor("andy@example.com");
         request.setTarget("john@example.com");
 
-        FriendResultDto resultDto = FriendResultDto.builder()
-                .success(true)
-                .build();
+        FriendResultDto result = new FriendResultDto();
+        result.setSuccess(true);
 
-        sendRequest(BLOCK, request, resultDto);
+        sendRequest(BLOCK, request, result);
     }
 
     @Test
@@ -113,14 +139,13 @@ class FriendControllerIntegrationTest {
         request.setSender("john@example.com");
         request.setText("Hello World! kate@example.com");
 
-        FriendResultDto resultDto = FriendResultDto.builder()
-                .success(true)
-                .recipients(List.of(
-                        "lisa@example.com",
-                        "kate@example.com"))
-                .build();
+        FriendResultDto result = new FriendResultDto();
+        result.setSuccess(true);
+        result.setRecipients(List.of(
+                "lisa@example.com",
+                "kate@example.com"));
 
-        sendRequest(GET_UPDATED_FRIENDS, request, resultDto);
+        sendRequest(GET_UPDATED_FRIENDS, request, result);
     }
 
     private void sendRequest(String uri, Object request, FriendResultDto resultDto) throws JsonProcessingException {

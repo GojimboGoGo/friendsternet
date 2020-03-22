@@ -1,6 +1,8 @@
 package jbourne.demo.friendsternet.data.dto;
 
-import lombok.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 import java.util.List;
 

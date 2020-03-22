@@ -1,17 +1,14 @@
 package jbourne.demo.friendsternet.data.dto;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.experimental.Accessors;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@Builder
-@Accessors(fluent = true)
-@Getter
+@Data
+@NoArgsConstructor
 public class FriendResultDto {
-    private final @NonNull Boolean success;
+    private Boolean success;
     private List<String> friends;
     private List<String> recipients;
     private List<String> messages;
