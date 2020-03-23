@@ -54,7 +54,7 @@ public class FriendController {
     public FriendResultDto subscribeToEmail(
             @RequestBody FriendSubscribeRequestDto requestDto
     ) {
-        throw new IllegalStateException("TODO: implementation");
+        return friendService.subscribeToUser(requestDto);
     }
 
     @PostMapping(value = BLOCK)
@@ -62,7 +62,7 @@ public class FriendController {
     public FriendResultDto blockEmail(
             @RequestBody FriendSubscribeRequestDto requestDto
     ) {
-        throw new IllegalStateException("TODO: implementation");
+        return friendService.blockUser(requestDto);
     }
 
     @PostMapping(value = GET_UPDATED_FRIENDS)
