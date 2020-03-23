@@ -34,15 +34,15 @@ public class FriendController {
     @PostMapping(value = GET_FRIENDS)
     @ApiOperation("Retrieve Friends List")
     public FriendResultDto retrieveFriends(
-            @RequestBody FriendListRequestDto createRequestDto
+            @RequestBody FriendListRequestDto requestDto
     ) {
-        throw new IllegalStateException("TODO: implementation");
+        return friendService.retrieveFriendsList(requestDto);
     }
 
     @PostMapping(value = GET_COMMON_FRIENDS)
     @ApiOperation("Retrieve Friends List in Common")
     public FriendResultDto retrieveCommonFriends(
-            @RequestBody FriendCommonListRequestDto createRequestDto
+            @RequestBody FriendCommonListRequestDto requestDto
     ) {
         throw new IllegalStateException("TODO: implementation");
     }
@@ -52,7 +52,7 @@ public class FriendController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation("Subscribe to Email")
     public FriendResultDto subscribeToEmail(
-            @RequestBody FriendSubscribeRequestDto createRequestDto
+            @RequestBody FriendSubscribeRequestDto requestDto
     ) {
         throw new IllegalStateException("TODO: implementation");
     }
@@ -60,7 +60,7 @@ public class FriendController {
     @PostMapping(value = BLOCK)
     @ApiOperation("Block updates from Email")
     public FriendResultDto blockEmail(
-            @RequestBody FriendSubscribeRequestDto createRequestDto
+            @RequestBody FriendSubscribeRequestDto requestDto
     ) {
         throw new IllegalStateException("TODO: implementation");
     }
@@ -68,7 +68,7 @@ public class FriendController {
     @PostMapping(value = GET_UPDATED_FRIENDS)
     @ApiOperation("Retrieve all Email Addresses to be Updated")
     public FriendResultDto getNotifiedFriends(
-            @RequestBody FriendSendUpdateRequestDto createRequestDto
+            @RequestBody FriendSendUpdateRequestDto requestDto
     ) {
         throw new IllegalStateException("TODO: implementation");
     }

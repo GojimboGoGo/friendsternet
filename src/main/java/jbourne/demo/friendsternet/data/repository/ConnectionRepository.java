@@ -5,6 +5,4 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface ConnectionRepository extends CrudRepository<Connection, Long> {
 
-    @Override
-    <S extends Connection> S save(S entity);
 }

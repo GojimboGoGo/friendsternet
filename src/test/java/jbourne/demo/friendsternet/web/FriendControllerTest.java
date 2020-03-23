@@ -80,14 +80,28 @@ class FriendControllerTest {
     @DisplayName("As a user, I need an API to retrieve the friends list for an email address.")
     void shouldRetrieveFriendsList() throws Exception {
         FriendListRequestDto request = new FriendListRequestDto();
-        request.setEmail("andy@example.com");
+        String email = "andy@example.com";
+        request.setEmail(email);
+
+        when(userRepository.findAllFriends(email))
+                .thenReturn(List.of(
+                        new User(1L, "john@example.com"))
+                );
 
         FriendResultDto result = new FriendResultDto();
         result.setSuccess(true);
         result.setFriends(List.of("john@example.com"));
         result.setCount(1);
 
-        sendRequest(GET_FRIENDS, request, result);
+//        sendRequest(GET_FRIENDS, request, result);
+        webTestClient.post()
+                .uri(GET_FRIENDS)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(request))
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .json(mapper.writeValueAsString(result));
     }
 
     @Test
