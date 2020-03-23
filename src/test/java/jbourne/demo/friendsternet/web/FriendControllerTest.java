@@ -110,12 +110,23 @@ class FriendControllerTest {
         FriendCommonListRequestDto request = new FriendCommonListRequestDto();
         request.setFriends(List.of("andy@example.com", "john@example.com"));
 
+        when(userRepository.findAllCommonFriends("andy@example.com", "john@example.com"))
+                .thenReturn(List.of(new User(1L, "common@example.com")));
+
         FriendResultDto result = new FriendResultDto();
         result.setSuccess(true);
         result.setFriends(List.of("common@example.com"));
         result.setCount(1);
 
-        sendRequest(GET_COMMON_FRIENDS, request, result);
+//        sendRequest(GET_COMMON_FRIENDS, request, result);
+        webTestClient.post()
+                .uri(GET_COMMON_FRIENDS)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(request))
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .json(mapper.writeValueAsString(result));
     }
 
     @Test

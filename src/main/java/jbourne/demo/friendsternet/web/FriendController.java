@@ -44,7 +44,7 @@ public class FriendController {
     public FriendResultDto retrieveCommonFriends(
             @RequestBody FriendCommonListRequestDto requestDto
     ) {
-        throw new IllegalStateException("TODO: implementation");
+        return friendService.retrieveCommonFriendsLists(requestDto);
     }
 
     @PostMapping(value = SUBSCRIBE,

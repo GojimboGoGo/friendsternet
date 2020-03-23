@@ -28,6 +28,7 @@ class UserRepositoryTest {
     private User user3 = new User(3L, "alice@example.com");
     private Connection friendConnection = new Connection(1L, user1.getId(), user2.getId());
     private Connection friendConnection2 = new Connection(2L, user1.getId(), user3.getId());
+    private Connection friendConnection3 = new Connection(3L, user2.getId(), user3.getId());
 
     @BeforeEach
     void setup() {
@@ -36,6 +37,7 @@ class UserRepositoryTest {
         user3 = userRepository.save(user3);
         friendConnection = connectionRepository.save(friendConnection);
         friendConnection2 = connectionRepository.save(friendConnection2);
+        friendConnection3 = connectionRepository.save(friendConnection3);
     }
 
     @Test
@@ -50,6 +52,15 @@ class UserRepositoryTest {
         List<User> expected = List.of(user2, user3);
 
         List<User> result = userRepository.findAllFriends("andy@example.com");
+
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void findAllCommonFriends() {
+        List<User> expected = List.of(user3);
+
+        List<User> result = userRepository.findAllCommonFriends("andy@example.com", "john@example.com");
 
         assertEquals(expected, result);
     }

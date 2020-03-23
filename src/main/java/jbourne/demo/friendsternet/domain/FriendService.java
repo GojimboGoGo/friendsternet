@@ -1,5 +1,6 @@
 package jbourne.demo.friendsternet.domain;
 
+import jbourne.demo.friendsternet.data.dto.FriendCommonListRequestDto;
 import jbourne.demo.friendsternet.data.dto.FriendCreateRequestDto;
 import jbourne.demo.friendsternet.data.dto.FriendListRequestDto;
 import jbourne.demo.friendsternet.data.dto.FriendResultDto;
@@ -69,6 +70,28 @@ public class FriendService {
         result.setSuccess(true);
         result.setFriends(friends);
         result.setCount(friends.size());
+        return result;
+    }
+
+
+    public FriendResultDto retrieveCommonFriendsLists(FriendCommonListRequestDto requestDto) {
+        if (requestDto.getFriends().size() != 2) {
+            throw new BadRequestException("Invalid connection request! Please enter 2 email addresses only.");
+        }
+        if (requestDto.getFriends().stream()
+                .anyMatch(email -> !EmailValidator.getInstance().isValid(email))) {
+            throw new BadRequestException(INVALID_USER_EMAIL);
+        }
+
+        List<String> friends = requestDto.getFriends();
+        List<String> commonFriends = userRepository.findAllCommonFriends(friends.get(0), friends.get(1)).stream()
+                .map(User::getEmailAddress)
+                .collect(Collectors.toList());
+
+        FriendResultDto result = new FriendResultDto();
+        result.setSuccess(true);
+        result.setFriends(commonFriends);
+        result.setCount(commonFriends.size());
         return result;
     }
 }

@@ -15,4 +15,12 @@ public interface UserRepository extends CrudRepository<User, Long> {
             "INNER JOIN User u2 ON c.user2 = u2.id " +
             "WHERE u1.emailAddress = ?1")
     List<User> findAllFriends(String emailAddress);
+
+    @Query("SELECT u2 " +
+            "FROM User u1 INNER JOIN Connection c ON u1.id = c.user1 " +
+            "INNER JOIN User u2 ON c.user2 = u2.id " +
+            "WHERE u1.emailAddress = ?1 OR u1.emailAddress = ?2 " +
+            "GROUP BY c.user2 " +
+            "HAVING COUNT(c.user1) > 1")
+    List<User> findAllCommonFriends(String emailAddress1, String emailAddress2);
 }
