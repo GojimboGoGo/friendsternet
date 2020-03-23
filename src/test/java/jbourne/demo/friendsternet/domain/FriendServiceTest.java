@@ -3,8 +3,11 @@ package jbourne.demo.friendsternet.domain;
 import jbourne.demo.friendsternet.data.dto.FriendCreateRequestDto;
 import jbourne.demo.friendsternet.data.dto.FriendListRequestDto;
 import jbourne.demo.friendsternet.data.dto.FriendResultDto;
+import jbourne.demo.friendsternet.data.dto.FriendSendUpdateRequestDto;
 import jbourne.demo.friendsternet.data.entity.User;
+import jbourne.demo.friendsternet.data.repository.BlocklistRepository;
 import jbourne.demo.friendsternet.data.repository.ConnectionRepository;
+import jbourne.demo.friendsternet.data.repository.SubscriptionRepository;
 import jbourne.demo.friendsternet.data.repository.UserRepository;
 import jbourne.demo.friendsternet.exception.BadRequestException;
 import org.junit.jupiter.api.Test;
@@ -29,6 +32,10 @@ class FriendServiceTest {
     private UserRepository userRepository;
     @MockBean
     private ConnectionRepository connectionRepository;
+    @MockBean
+    private SubscriptionRepository subscriptionRepository;
+    @MockBean
+    private BlocklistRepository blocklistRepository;
 
     @Autowired
     FriendServiceTest(FriendService friendService) {
@@ -124,5 +131,34 @@ class FriendServiceTest {
         requestDto.setEmail(emailAddress);
 
         assertThrows(BadRequestException.class, () -> friendService.retrieveFriendsList(requestDto));
+    }
+
+    @Test
+    void sendUpdateShouldSendNoticeToSpecificUsers() {
+        var text = "Hello World! kate@example.com";
+        var john = new User(1L, "john@example.com");
+        var lisa = new User(2L, "lisa@example.com");
+        var billy = new User(3L, "billy@example.com");
+        var mickey = new User(4L, "mickey@example.com");
+        var kate = new User(5L, "kate@example.com");
+        var confused = new User(6L, "confused@example.com");
+        var recipients = List.of(
+                lisa.getEmailAddress(),
+                kate.getEmailAddress(),
+                mickey.getEmailAddress());
+        when(userRepository.findAllFriends(john.getEmailAddress()))
+                .thenReturn(List.of(lisa, billy));
+        when(userRepository.findAllSubscribers(john.getEmailAddress()))
+                .thenReturn(List.of(mickey, confused));
+        when(userRepository.findAllWhoHaveBlocked(john.getEmailAddress()))
+                .thenReturn(List.of(billy, confused));
+
+        var requestDto = new FriendSendUpdateRequestDto();
+        requestDto.setSender(john.getEmailAddress());
+        requestDto.setText(text);
+        var result = friendService.getUpdatableEmails(requestDto);
+
+        assertTrue(result.getSuccess());
+        assertEquals(recipients, result.getRecipients());
     }
 }

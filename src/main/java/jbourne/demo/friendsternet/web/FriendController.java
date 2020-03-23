@@ -70,6 +70,6 @@ public class FriendController {
     public FriendResultDto getNotifiedFriends(
             @RequestBody FriendSendUpdateRequestDto requestDto
     ) {
-        throw new IllegalStateException("TODO: implementation");
+        return friendService.getUpdatableEmails(requestDto);
     }
 }

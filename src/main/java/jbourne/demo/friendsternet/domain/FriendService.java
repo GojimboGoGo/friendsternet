@@ -10,11 +10,14 @@ import jbourne.demo.friendsternet.data.repository.ConnectionRepository;
 import jbourne.demo.friendsternet.data.repository.SubscriptionRepository;
 import jbourne.demo.friendsternet.data.repository.UserRepository;
 import jbourne.demo.friendsternet.exception.BadRequestException;
+import jbourne.demo.friendsternet.util.EmailAddressUtil;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,7 +43,7 @@ public class FriendService {
             throw new BadRequestException("Invalid connection request! Please enter 2 email addresses only.");
         }
         if (requestDto.getFriends().stream()
-                .anyMatch(email -> !EmailValidator.getInstance().isValid(email))) {
+                .anyMatch(this::isInvalidEmail)) {
             throw new BadRequestException(INVALID_USER_EMAIL);
         }
 
@@ -62,7 +65,7 @@ public class FriendService {
     }
 
     public FriendResultDto retrieveFriendsList(FriendListRequestDto requestDto) {
-        if (!EmailValidator.getInstance().isValid(requestDto.getEmail())) {
+        if (isInvalidEmail(requestDto.getEmail())) {
             throw new BadRequestException(INVALID_USER_EMAIL);
         }
 
@@ -84,7 +87,7 @@ public class FriendService {
             throw new BadRequestException("Invalid connection request! Please enter 2 email addresses only.");
         }
         if (requestDto.getFriends().stream()
-                .anyMatch(email -> !EmailValidator.getInstance().isValid(email))) {
+                .anyMatch(this::isInvalidEmail)) {
             throw new BadRequestException(INVALID_USER_EMAIL);
         }
 
@@ -101,10 +104,10 @@ public class FriendService {
     }
 
     public FriendResultDto subscribeToUser(FriendSubscribeRequestDto requestDto) {
-        if (!EmailValidator.getInstance().isValid(requestDto.getRequestor())) {
+        if (isInvalidEmail(requestDto.getRequestor())) {
             throw new BadRequestException(INVALID_USER_EMAIL);
         }
-        if (!EmailValidator.getInstance().isValid(requestDto.getTarget())) {
+        if (isInvalidEmail(requestDto.getTarget())) {
             throw new BadRequestException(INVALID_USER_EMAIL);
         }
 
@@ -121,10 +124,10 @@ public class FriendService {
     }
 
     public FriendResultDto blockUser(FriendSubscribeRequestDto requestDto) {
-        if (!EmailValidator.getInstance().isValid(requestDto.getRequestor())) {
+        if (isInvalidEmail(requestDto.getRequestor())) {
             throw new BadRequestException(INVALID_USER_EMAIL);
         }
-        if (!EmailValidator.getInstance().isValid(requestDto.getTarget())) {
+        if (isInvalidEmail(requestDto.getTarget())) {
             throw new BadRequestException(INVALID_USER_EMAIL);
         }
 
@@ -138,5 +141,39 @@ public class FriendService {
         FriendResultDto result = new FriendResultDto();
         result.setSuccess(true);
         return result;
+    }
+
+    public FriendResultDto getUpdatableEmails(FriendSendUpdateRequestDto requestDto) {
+        if (isInvalidEmail(requestDto.getSender())) {
+            throw new BadRequestException(INVALID_USER_EMAIL);
+        }
+
+        Set<String> friends =
+                userRepository.findAllFriends(requestDto.getSender()).stream()
+                        .map(User::getEmailAddress)
+                        .collect(Collectors.toSet());
+        Set<String> subscribers =
+                userRepository.findAllSubscribers(requestDto.getSender()).stream()
+                        .map(User::getEmailAddress)
+                        .collect(Collectors.toSet());
+        Set<String> mentioned = new HashSet<>(EmailAddressUtil.getEmailAddresses(requestDto.getText()));
+        Set<String> blockers =
+                userRepository.findAllWhoHaveBlocked(requestDto.getSender()).stream()
+                        .map(User::getEmailAddress)
+                        .collect(Collectors.toSet());
+
+        Set<String> recipients = new HashSet<>(friends);
+        recipients.addAll(subscribers);
+        recipients.addAll(mentioned);
+        recipients.removeAll(blockers);
+
+        FriendResultDto result = new FriendResultDto();
+        result.setSuccess(true);
+        result.setRecipients(List.copyOf(recipients));
+        return result;
+    }
+
+    private boolean isInvalidEmail(String requestor) {
+        return !EmailValidator.getInstance().isValid(requestor);
     }
 }

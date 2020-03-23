@@ -4,7 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jbourne.demo.friendsternet.data.dto.*;
 import jbourne.demo.friendsternet.data.entity.User;
+import jbourne.demo.friendsternet.data.repository.BlocklistRepository;
 import jbourne.demo.friendsternet.data.repository.ConnectionRepository;
+import jbourne.demo.friendsternet.data.repository.SubscriptionRepository;
 import jbourne.demo.friendsternet.data.repository.UserRepository;
 import jbourne.demo.friendsternet.domain.FriendService;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +36,10 @@ class FriendControllerTest {
     private UserRepository userRepository;
     @MockBean
     private ConnectionRepository connectionRepository;
+    @MockBean
+    private SubscriptionRepository subscriptionRepository;
+    @MockBean
+    private BlocklistRepository blocklistRepository;
 
     @Autowired
     private WebTestClient webTestClient;
@@ -65,15 +71,7 @@ class FriendControllerTest {
         when(userRepository.findByEmailAddress(e2))
                 .thenReturn(Optional.of(user));
 
-//        sendRequest(CREATE_CONNECTION, request, resultDto);
-        webTestClient.post()
-                .uri(CREATE_CONNECTION)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(request))
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody()
-                .json(mapper.writeValueAsString(result));
+        sendRequest(CREATE_CONNECTION, request, result);
     }
 
     @Test
@@ -93,15 +91,7 @@ class FriendControllerTest {
         result.setFriends(List.of("john@example.com"));
         result.setCount(1);
 
-//        sendRequest(GET_FRIENDS, request, result);
-        webTestClient.post()
-                .uri(GET_FRIENDS)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(request))
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody()
-                .json(mapper.writeValueAsString(result));
+        sendRequest(GET_FRIENDS, request, result);
     }
 
     @Test
@@ -118,25 +108,26 @@ class FriendControllerTest {
         result.setFriends(List.of("common@example.com"));
         result.setCount(1);
 
-//        sendRequest(GET_COMMON_FRIENDS, request, result);
-        webTestClient.post()
-                .uri(GET_COMMON_FRIENDS)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(request))
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody()
-                .json(mapper.writeValueAsString(result));
+        sendRequest(GET_COMMON_FRIENDS, request, result);
     }
 
     @Test
     @DisplayName("As a user, I need an API to subscribe to updates from an email address.")
     void shouldAllowSubscription() throws Exception {
-        FriendSubscribeRequestDto request = new FriendSubscribeRequestDto();
-        request.setRequestor("lisa@example.com");
-        request.setTarget("john@example.com");
+        var request = new FriendSubscribeRequestDto();
+        var requestor = "lisa@example.com";
+        var lisa = new User(1L, requestor);
+        request.setRequestor(requestor);
+        var target = "john@example.com";
+        var john = new User(2L, target);
+        request.setTarget(target);
 
-        FriendResultDto result = new FriendResultDto();
+        when(userRepository.findByEmailAddress(requestor))
+                .thenReturn(Optional.of(lisa));
+        when(userRepository.findByEmailAddress(target))
+                .thenReturn(Optional.of(john));
+
+        var result = new FriendResultDto();
         result.setSuccess(true);
 
         sendRequest(SUBSCRIBE, request, result);
@@ -145,10 +136,19 @@ class FriendControllerTest {
     @Test
     @DisplayName("As a user, I need an API to block updates from an email address.")
     void shouldAllowBlocking() throws Exception {
-        FriendSubscribeRequestDto request =
-                new FriendSubscribeRequestDto();
-        request.setRequestor("andy@example.com");
-        request.setTarget("john@example.com");
+        var requestor = "andy@example.com";
+        var andy = new User(1L, requestor);
+        var target = "john@example.com";
+        var john = new User(1L, target);
+
+        var request = new FriendSubscribeRequestDto();
+        request.setRequestor(requestor);
+        request.setTarget(target);
+
+        when(userRepository.findByEmailAddress(requestor))
+                .thenReturn(Optional.of(andy));
+        when(userRepository.findByEmailAddress(target))
+                .thenReturn(Optional.of(john));
 
         FriendResultDto result = new FriendResultDto();
         result.setSuccess(true);
@@ -159,10 +159,15 @@ class FriendControllerTest {
     @Test
     @DisplayName("As a user, I need an API to retrieve all email addresses that can receive updates from an email address.")
     void shouldAllowCheckingSubscribers() throws Exception {
-        FriendSendUpdateRequestDto request =
-                new FriendSendUpdateRequestDto();
-        request.setSender("john@example.com");
+        var request = new FriendSendUpdateRequestDto();
+        String sender = "john@example.com";
+        var lisa = new User(1L, "lisa@example.com");
+        request.setSender(sender);
         request.setText("Hello World! kate@example.com");
+
+        when(userRepository.findAllWhoHaveBlocked(sender)).thenReturn(List.of());
+        when(userRepository.findAllSubscribers(sender)).thenReturn(List.of(lisa));
+        when(userRepository.findAllFriends(sender)).thenReturn(List.of());
 
         FriendResultDto result = new FriendResultDto();
         result.setSuccess(true);
@@ -179,8 +184,8 @@ class FriendControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(request))
                 .exchange()
-                .expectStatus().is5xxServerError();
-//                .expectBody()
-//                .json(mapper.writeValueAsString(resultDto));
+                .expectStatus().isOk()
+                .expectBody()
+                .json(mapper.writeValueAsString(resultDto));
     }
 }

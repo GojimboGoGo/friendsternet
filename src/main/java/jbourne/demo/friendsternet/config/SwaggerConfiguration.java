@@ -33,6 +33,8 @@ public class SwaggerConfiguration {
                 .apis(RequestHandlerSelectors.any())
                 .paths(PathSelectors.ant("/connections/**")
                         .or(PathSelectors.ant("/users/**"))
+                        .or(PathSelectors.ant("/subscriptions/**"))
+                        .or(PathSelectors.ant("/blocklists/**"))
                         .or(PathSelectors.ant("/api/**/**")))
                 .build()
                 .produces(Set.of(MediaType.APPLICATION_JSON_VALUE))
