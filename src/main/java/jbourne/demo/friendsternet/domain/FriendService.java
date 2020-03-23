@@ -10,6 +10,7 @@ import jbourne.demo.friendsternet.data.repository.ConnectionRepository;
 import jbourne.demo.friendsternet.data.repository.SubscriptionRepository;
 import jbourne.demo.friendsternet.data.repository.UserRepository;
 import jbourne.demo.friendsternet.exception.BadRequestException;
+import jbourne.demo.friendsternet.exception.MissingUserException;
 import jbourne.demo.friendsternet.util.EmailAddressUtil;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.stereotype.Service;
@@ -47,8 +48,18 @@ public class FriendService {
             throw new BadRequestException(INVALID_USER_EMAIL);
         }
 
-        var user1 = userRepository.findByEmailAddress(requestDto.getFriends().get(0)).orElseThrow();
-        var user2 = userRepository.findByEmailAddress(requestDto.getFriends().get(1)).orElseThrow();
+        var user1 = userRepository.findByEmailAddress(requestDto.getFriends().get(0))
+                .orElseGet(() -> {
+                    var newUser = new User();
+                    newUser.setEmailAddress(requestDto.getFriends().get(0));
+                    return userRepository.save(newUser);
+                });
+        var user2 = userRepository.findByEmailAddress(requestDto.getFriends().get(1))
+                .orElseGet(() -> {
+                    var newUser = new User();
+                    newUser.setEmailAddress(requestDto.getFriends().get(1));
+                    return userRepository.save(newUser);
+                });
 
         Connection toSave = new Connection();
         toSave.setUser1(user1.getId());
@@ -111,8 +122,8 @@ public class FriendService {
             throw new BadRequestException(INVALID_USER_EMAIL);
         }
 
-        var subscriber = userRepository.findByEmailAddress(requestDto.getRequestor()).orElseThrow();
-        var target = userRepository.findByEmailAddress(requestDto.getTarget()).orElseThrow();
+        var subscriber = userRepository.findByEmailAddress(requestDto.getRequestor()).orElseThrow(MissingUserException::new);
+        var target = userRepository.findByEmailAddress(requestDto.getTarget()).orElseThrow(MissingUserException::new);
         var subscription = new Subscription();
         subscription.setSubscriber(subscriber.getId());
         subscription.setTarget(target.getId());
@@ -131,8 +142,8 @@ public class FriendService {
             throw new BadRequestException(INVALID_USER_EMAIL);
         }
 
-        var blocker = userRepository.findByEmailAddress(requestDto.getRequestor()).orElseThrow();
-        var target = userRepository.findByEmailAddress(requestDto.getTarget()).orElseThrow();
+        var blocker = userRepository.findByEmailAddress(requestDto.getRequestor()).orElseThrow(MissingUserException::new);
+        var target = userRepository.findByEmailAddress(requestDto.getTarget()).orElseThrow(MissingUserException::new);
         var subscription = new Blocklist();
         subscription.setBlocker(blocker.getId());
         subscription.setTarget(target.getId());
