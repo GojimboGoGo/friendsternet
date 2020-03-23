@@ -43,7 +43,9 @@ For running tests, run
 
 ## Accessing Cloud Deployed App
 
-The app's Swagger UI has been deployed via [Heroku](https://salty-sea-74277.herokuapp.com/swagger-ui.html).
+The app's Swagger UI has been deployed via Heroku.
+
+[https://salty-sea-74277.herokuapp.com/swagger-ui.html]()
 
 ## Deploying via Docker
 
@@ -81,7 +83,7 @@ Produces:
 * 200 OK - `{ "success": true }`
 * 500 ERROR - `{ "message": "Invalid connection request! Please enter 2 email addresses only." }`
 
-###POST /api/friends/list
+### POST /api/friends/list
 
 Retrieve friends list for an email address.
 
@@ -95,7 +97,7 @@ Produces:
 * 500 ERROR - `{ "message": "Invalid user email" }`
 
 
-###POST /api/friends/list/commons
+### POST /api/friends/list/commons
 
 Retrieve the common friends list between two email addresses.
 
@@ -114,7 +116,7 @@ Produces:
 * 200 OK - `{ "success": true, "friends": [ "common@example.com" ], "count": 1 }`
 * 500 ERROR - `{ "message": "Invalid connection request! Please enter 2 email addresses only." }`
 
-###POST /api/friends/subscriptions
+### POST /api/friends/subscriptions
 
 Subscribe to updates from an email address.
 
@@ -127,7 +129,7 @@ Produces:
 * 200 OK - `{ "success": true }`
 * 500 ERROR - `{ "message": "Invalid user email" }`
 
-###POST /api/friends/blacklists
+### POST /api/friends/blacklists
 
 Block updates from an email address.
 
@@ -140,7 +142,7 @@ Produces:
 * 200 OK - `{ "success": true }`
 * 500 ERROR - `{ "message": "Invalid user email" }`
 
-###POST /api/friends/notifications
+### POST /api/friends/notifications
 
 Retrieve all email addresses that can receive updates from an email address.
 
