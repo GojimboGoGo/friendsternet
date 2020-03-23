@@ -64,7 +64,7 @@ Accepts: application/json
 
 Produces: application/json
 
-###POST /api/friends/connections
+### POST /api/friends/connections
 
 Create a friend connection between two email addresses.
 
