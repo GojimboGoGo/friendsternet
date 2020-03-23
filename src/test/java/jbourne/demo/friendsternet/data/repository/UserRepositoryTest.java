@@ -5,22 +5,27 @@ import jbourne.demo.friendsternet.data.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD;
 
 @ExtendWith(SpringExtension.class)
 @DataJpaTest
+@Transactional
+@DirtiesContext(classMode = BEFORE_EACH_TEST_METHOD)
 class UserRepositoryTest {
 
-    @Resource
+    @Autowired
     private UserRepository userRepository;
-    @Resource
+    @Autowired
     private ConnectionRepository connectionRepository;
 
     private User user1 = new User(1L, "andy@example.com");
@@ -32,12 +37,12 @@ class UserRepositoryTest {
 
     @BeforeEach
     void setup() {
-        user1 = userRepository.save(user1);
-        user2 = userRepository.save(user2);
-        user3 = userRepository.save(user3);
-        friendConnection = connectionRepository.save(friendConnection);
-        friendConnection2 = connectionRepository.save(friendConnection2);
-        friendConnection3 = connectionRepository.save(friendConnection3);
+        userRepository.save(user1);
+        userRepository.save(user2);
+        userRepository.save(user3);
+        connectionRepository.save(friendConnection);
+        connectionRepository.save(friendConnection2);
+        connectionRepository.save(friendConnection3);
     }
 
     @Test
