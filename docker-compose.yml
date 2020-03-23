@@ -17,8 +17,4 @@ services:
         condition: on-failure
 
 networks:
-  frontend:
   backend:
-
-volumes:
-  db-data:
